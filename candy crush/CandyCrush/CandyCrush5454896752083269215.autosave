@@ -1,0 +1,317 @@
+int col = 6, row = 3, imgSize = 50, blockSize = 55, textSize = 10, 
+    specials = 1, normals = 6, wraps = 6, stripes = 12;
+int xOffSet, yOffSet, score, x1, y1, x2, y2;
+int[][] board;
+//1~6 = normal, 7~12 = wrap, 13~24 = stripe, 25 = bomb
+//-1 = empty, -2 = ver-stripe ignite, -3 = hor-stripe ignite,
+//-4 = wrap ignite 1, -5 = wrap ignite 2, -6 = bomb ignite
+String normalPath = "../images/normal/normal";
+String stripePath = "../images/striped/striped";
+String wrapPath = "../images/wrapped/wrapped";
+String specialPath = "../images/special/special";
+String backPath = "../images/environment/background.jpg";
+String selectPath = "../images/environment/selected.png";
+PImage back, select;
+PImage[] normal, stripe, wrap, special;
+
+boolean debug = true;
+
+void setup(){
+  score = 0;
+  x1 = y1 = x2 = y2 = -1;
+  xOffSet = (600-blockSize*col)/2;
+  yOffSet = (300-blockSize*row)/2;
+  board = new int[col][row];
+  
+  back = loadImage(backPath);
+  select = loadImage(selectPath);
+  
+  normal = new PImage[normals];
+  for(int i = 0; i < normals; i++) {
+    normal[i] = loadImage(normalPath + (i+1) +".png");
+  }
+  
+  wrap = new PImage[wraps];
+  for(int i = 0; i < wraps; i++) {
+    wrap[i] = loadImage(wrapPath + (i+1) +".png");
+  }
+  
+  stripe = new PImage[stripes];
+  for(int i = 0; i < stripes; i++) {
+    stripe[i] = loadImage(stripePath + (i+1) +".png");
+  }
+
+  special = new PImage[specials];
+  for(int i = 0; i < specials; i++) {
+    special[i] = loadImage(specialPath + (i+1) +".png");
+  }
+
+  randomSeed(2);
+  for(int i = 0; i < col; i++) {
+    for(int j = 0; j < row; j++) {
+      board[i][j] = (int)random(normals)+1;
+    }
+  }
+  //board[4][2]=5;
+  //board[1][0]=5;
+  //board[3][0]=4;
+  
+  size(600, 600);
+  imageMode(CENTER);
+  drawBack();
+  drawCandy();
+  drawDebug();
+}
+
+void draw(){
+  
+}
+
+void drawBack(){
+  image(back, 300, 150, 640, 300);
+  strokeWeight(0);
+  fill(80, 100);
+  rect(xOffSet, yOffSet, blockSize*col, blockSize*row, 10);
+  strokeWeight(1);
+  stroke(255, 80);
+  for(int i = 1; i < col; i++) {
+    line(blockSize*i+xOffSet, yOffSet, blockSize*i+xOffSet, blockSize*row+yOffSet);
+  }
+  for(int i = 1; i < row; i++) {
+    line(xOffSet, blockSize*i+yOffSet, blockSize*col+xOffSet, blockSize*i+yOffSet);
+  }
+}
+
+void drawCandy(){
+  for(int i = 0; i < col; i++) {
+    for(int j = 0; j < row; j++) {
+      if (board[i][j] > 24) {
+        image(special[board[i][j]-25], (i+0.5)*blockSize+xOffSet, 
+              (j+0.5)*blockSize+yOffSet, imgSize, imgSize);
+      } else if (board[i][j] > 12) {
+        image(stripe[board[i][j]-13], (i+0.5)*blockSize+xOffSet, 
+              (j+0.5)*blockSize+yOffSet, imgSize, imgSize);
+      } else if (board[i][j] > 6) {
+        image(wrap[board[i][j]-7], (i+0.5)*blockSize+xOffSet, 
+              (j+0.5)*blockSize+yOffSet, imgSize, imgSize);
+      } else if (board[i][j] > 0) {
+        image(normal[board[i][j]-1], (i+0.5)*blockSize+xOffSet, 
+              (j+0.5)*blockSize+yOffSet, imgSize, imgSize);
+      }
+    }
+  }
+}
+
+void drawDebug(){
+  if (debug) {
+    fill(255);
+    strokeWeight(0);
+    rect(0,300,600,600);
+    textSize(textSize);
+    fill(0);
+    text("board values", 10, 310);
+    for(int i = 0; i < col; i++) {
+      for(int j = 0; j < row; j++) {
+        text(""+board[i][j], 10+1.5*i*textSize, 310+1.5*(j+1)*textSize);
+      }
+    }
+    text("score = "+score, 10, 310+1.5*(row+1)*textSize);
+    text("x1 = "+x1+" y1 = "+y1, 10, 310+1.5*(row+2)*textSize);
+    text("x2 = "+x2+" y2 = "+y2, 10, 310+1.5*(row+3)*textSize);
+  }
+}
+
+void mouseClicked() {
+  if (mouseX >= xOffSet && mouseX <= 600-xOffSet 
+   && mouseY >= yOffSet && mouseY <= 300-yOffSet) {
+     if (x1 < 0 && y1 < 0){
+       x1 = (mouseX-xOffSet)/blockSize;
+       y1 = (mouseY-yOffSet)/blockSize;
+       drawSelect(x1, y1);
+       drawDebug();
+     } else {
+       x2 = (mouseX-xOffSet)/blockSize;
+       y2 = (mouseY-yOffSet)/blockSize;
+       if ((abs(x1-x2) == abs(y1-y2)) || abs(x1-x2) > 1 || abs(y1-y2) > 1) {
+         x2 = y2 = -1;
+       } else {
+         swap();
+       }
+     }
+  } else {
+    x1 = y1 = x2 = y2 = -1;
+    drawBack();
+    drawCandy();
+    drawDebug();
+  }
+}
+
+void swap(){
+  int temp = board[x1][y1];
+  board[x1][y1] = board[x2][y2];
+  board[x2][y2] = temp;
+  x1 = y1 = x2 = y2 = -1;
+  check();
+}
+
+void drawSelect(int x, int y) {
+  image(select, (x+0.5)*blockSize+xOffSet, (y+0.5)*blockSize+yOffSet, blockSize, blockSize);
+}
+
+void check() {
+  boolean needFall = false;
+  for(int i = 0; i < col; i++) {
+    for(int j = 0; j < row; j++) {
+      if (board[i][j] > 0) {
+        int hor = checkHor(i, j), ver = checkVer(i, j), temp = board[i][j];
+        boolean wrapFlag = false;
+        if (debug) {
+          println("x = "+i+" ,y = "+j+" ,hor = "+hor+" ,ver = "+ver);
+        }
+        if (hor >= 3) {
+          for (int k = 0; k < hor; k++) {
+            //check candy type
+            int[] num = checkUpDw(i+k, j);
+            if (num[2] >= 3 && !wrapFlag){
+              wrapFlag = true;
+              for (int h = -num[1]+1; h < num[0]; h++){
+                //check candy type
+                board[i+k][j+h] = -1;
+              }
+              board[i+k][j] = temp + 6;
+            } else {
+              board[i+k][j] = -1;
+            }
+          }
+          if (!wrapFlag){
+            if (hor >= 5) {
+              board[i][j] = 24;
+            } else if (hor ==4) {
+              board[i][j] = 12 + temp*2;
+            }
+          }
+          needFall = true;
+        } else if (ver >= 3) {
+          for (int k = 0; k < ver; k++) {
+            //check candy type
+            int[] num = checkLtRt(i, j+k);
+            if (num[2] >= 3 && !wrapFlag){
+              wrapFlag = true;
+              for (int h = -num[1]+1; h < num[0]; h++){
+                //check candy type
+                board[i+h][j+k] = -1;
+              }
+              board[i][j+k] = temp + 6;
+            } else {
+              board[i][j+k] = -1;
+            }
+          }
+          if (!wrapFlag){
+            if (ver >= 5) {
+              board[i][j] = 24;
+            } else if (ver ==4) {
+              board[i][j] = 13 + temp*2;
+            }
+          }
+          needFall = true;
+        }
+      }
+    }
+  }
+  drawBack();
+  drawCandy();
+  drawDebug();
+  if (needFall) {
+    fall();
+  }
+}
+
+boolean sameColor(int x1, int y1, int x2, int y2) {
+  int color1 = board[x1][y1], color2 = board[x2][y2];
+  if (color1 >= 12) {
+    color1 = (color1-12)/2;
+  } else if (color1 >= 6) {
+    color1 -= 6;
+  }
+  if (color2 >= 12) {
+    color2 = (color2-12)/2;
+  } else if (color2 >= 6) {
+    color2 -= 6;
+  }
+  if (color1 < 0 || color2 < 0) {
+    return false;
+  } else {
+    return color1 == color2;
+  }
+}
+
+int checkHor(int x, int y) {
+  int num = 1;
+  while (x+num < col && sameColor(x+num, y, x, y)) {
+    num++;
+  }
+  return num;
+}
+
+int checkVer(int x, int y) {
+  int num = 1;
+  while (y+num < row && sameColor(x, y+num, x, y)) {
+    num++;
+  }
+  return num;
+}
+
+int[] checkLtRt(int x, int y) {
+  int[] num = {1, 1, 0};
+  while (x+num[0] < col && sameColor(x+num[0], y, x, y)) {
+    num[0]++;
+  }
+  while (x-num[1] >= 0 && sameColor(x-num[1], y, x, y)) {
+    num[1]++;
+  }
+  num[2] = num[0]+num[1]-1;
+  return num;
+}
+
+int[] checkUpDw(int x, int y) {
+  int[] num = {1, 1, 0};
+  while (y+num[0] < row && sameColor(x, y+num[0], x, y)) {
+    num[0]++;
+  }
+  while (y-num[1] >= 0 && sameColor(x, y-num[1], x, y)) {
+    num[1]++;
+  }
+  num[2] = num[0]+num[1]-1;
+  return num;
+}
+
+void fall() {
+  for(int j = row -1; j >= 0 ; j--) {
+    for(int i = 0; i < col; i++) {
+      if (debug) {
+        println("checking x = "+i+", y = "+j);
+      }
+      if (board[i][j] < 0) {
+        int h = 1;
+        while (j-h >= 0 && board[i][j-h] < 0){
+          h++;
+        }
+        if (debug) {
+          println("---need fall, gap = "+h);
+        }
+        for (int k = j; k >= 0; k--) {
+          if (k-h < 0) {
+            board[i][k] = (int)random(normals);
+          } else {
+            board[i][k] = board[i][k-h];  
+          }
+        }
+      }
+    }
+  }
+  drawBack();
+  drawCandy();
+  drawDebug();
+  delay(300);
+  check();
+}

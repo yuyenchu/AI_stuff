@@ -1,0 +1,127 @@
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+
+public class Genome {
+	private List<NConnection> genes;
+	private List<Neuron> neurons;
+	private List<Map<Integer,Neuron>> network;
+	//network are in order of layers, network[i] = i layer
+	
+	public final int inputs, outputs;
+	private int layers, nextNeuronNo, nextConnNo, biasNode;
+	private Random rand;
+	
+	public Genome(int in, int out) {
+	    //set input number and output number
+		inputs = in;
+		outputs = out;
+		nextNeuronNo = 0;
+		nextConnNo = 0;
+		layers = 2;
+		genes = new ArrayList<>();
+		rand = new Random();
+		
+	    //create input nodes
+	    for (int i = 0; i<inputs; i++) {
+	      neurons.add(new Neuron(i, 0));
+	      nextNeuronNo++;
+	    }
+
+	    //create output nodes
+	    for (int i = 0; i < outputs; i++) {
+	      neurons.add(new Neuron(i+inputs, 1));
+	      nextNeuronNo++;
+	    }
+
+	    //create bias node
+	    neurons.add(new Neuron(nextNeuronNo, 0));
+	    biasNode = nextNeuronNo; 
+	    nextNeuronNo++;
+	}
+	
+	public Neuron getNode(int nodeNumber) {
+	    for (Neuron n: neurons) {
+	    	if (n.id == nodeNumber) {
+	    		return n;
+	    	}
+	    }
+	    return null;
+	}
+	
+	public void connect() {
+		for (Neuron n: neurons) {
+			n.clearConn();
+		}
+		for (NConnection c: genes) {
+			c.connect();
+		}
+	}
+	
+	public void generateNetwork() {
+		connect();
+		network = new ArrayList<Map<Integer,Neuron>>(layers);
+		for (int i = 0; i < layers; i++) {
+			network.add(new HashMap<Integer,Neuron>());
+		}
+		
+		for (Neuron n: neurons) {
+			network.get(n.layer).put(n.id, n);
+		}
+	}
+	
+	public void mutateNeuron(List<ConnHistory> innoHistory) {
+		if (genes.isEmpty()) {
+			mutateConnection(innoHistory);
+			return;
+		}
+		int randConn = rand.nextInt(genes.size());
+		while (genes.get(randConn).getFrom().id == biasNode && genes.size() > 1) {
+			randConn = rand.nextInt(genes.size());
+		}
+		
+		NConnection randomConn = genes.get(randConn);
+		randomConn.disabble();
+		Neuron newNode = new Neuron(nextNeuronNo, randomConn.getFrom().layer+1);
+		neurons.add(newNode);
+		nextNeuronNo++;
+		genes.add(new NConnection(randomConn.getFrom(), newNode, 1, getInnoNum(innoHistory, randomConn.getFrom(), newNode)));
+		genes.add(new NConnection(newNode, randomConn.getTo(), 1, getInnoNum(innoHistory, newNode, randomConn.getTo())));
+		genes.add(new NConnection(neurons.get(biasNode), newNode, 0, getInnoNum(innoHistory, neurons.get(biasNode), newNode)));
+
+		if (newNode.layer == randomConn.getTo().layer) {
+			
+		}
+	}
+	
+	public void mutateConnection(List<ConnHistory> innoHistory) {
+
+	}
+	
+	public int getInnoNum(List<ConnHistory> innoHistory, Neuron from, Neuron to) {
+		for (ConnHistory h: innoHistory) {
+			if (h.match(genes, from, to)) {
+				return h.id;
+			}
+		}
+		
+		List<Integer> innoNums = new ArrayList<Integer>();
+		for (NConnection c: genes) {
+			innoNums.add(c.innoNum);
+		}
+		innoHistory.add(new ConnHistory(from.id, to.id, nextConnNo, innoNums));
+		nextConnNo++;
+		
+		return nextConnNo-1;
+	}
+	
+	public List<NConnection> getGenes() {
+		return genes;
+	}
+	
+	public List<Neuron> getNeurons() {
+		return neurons;
+	}
+}

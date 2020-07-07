@@ -1,0 +1,96 @@
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+
+public class Genome {
+	private List<NConnection> genes;
+	private List<Neuron> neurons;
+	private List<Map<Integer,Neuron>> network;
+	//network are in order of layers, network[i] = i layer
+	
+	public final int inputs, outputs;
+	private int layers, nextneuronNo, nextConnNo, biasNode;
+	private Random rand;
+	
+	public Genome(int in, int out) {
+	    //set input number and output number
+		inputs = in;
+		outputs = out;
+		nextneuronNo = 0;
+		nextConnNo = 0;
+		layers = 2;
+		genes = new ArrayList<>();
+		rand = new Random();
+		
+	    //create input nodes
+	    for (int i = 0; i<inputs; i++) {
+	      neurons.add(new Neuron(i, 0));
+	      nextneuronNo++;
+	    }
+
+	    //create output nodes
+	    for (int i = 0; i < outputs; i++) {
+	      neurons.add(new Neuron(i+inputs, 1));
+	      nextneuronNo++;
+	    }
+
+	    //create bias node
+	    neurons.add(new Neuron(nextneuronNo, 0));
+	    biasNode = nextneuronNo; 
+	    nextneuronNo++;
+	}
+	
+	public Neuron getNode(int nodeNumber) {
+	    for (Neuron n: neurons) {
+	    	if (n.id == nodeNumber) {
+	    		return n;
+	    	}
+	    }
+	    return null;
+	}
+	
+	public void connect() {
+		for (Neuron n: neurons) {
+			n.clearConn();
+		}
+		for (NConnection c: genes) {
+			c.connect();
+		}
+	}
+	
+	public void generateNetwork() {
+		connect();
+		network = new ArrayList<Map<Integer,Neuron>>(layers);
+		for (int i = 0; i < layers; i++) {
+			network.add(new HashMap<Integer,Neuron>());
+		}
+		
+		for (Neuron n: neurons) {
+			network.get(n.getLayer()).put(n.id, n);
+		}
+	}
+	
+	public void addNeuron(List<ConnHistory> innoHistory) {
+		if (genes.isEmpty()) {
+			addConnection(innoHistory);
+			return;
+		}
+		int randConn = rand.nextInt(genes.size());
+		while (genes.get(randConn).getFrom().id == genes.get(biasNode))
+		
+	}
+	
+	public void addConnection(List<ConnHistory> innoHistory) {
+
+	}
+	
+	public List<NConnection> getGenes() {
+		return genes;
+	}
+	
+	public List<Neuron> getNeurons() {
+		return neurons;
+	}
+}

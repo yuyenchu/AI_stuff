@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">
+<refactoring comment="Rename type &apos;NConnection&apos; to &apos;Connection&apos;&#x0A;- Original project: &apos;NEAT_plus_Qlearning&apos;&#x0A;- Original element: &apos;NConnection&apos;&#x0A;- Renamed element: &apos;Connection&apos;&#x0A;- Update references to refactored element&#x0A;- Update textual occurrences in comments and strings" description="Rename type &apos;NConnection&apos;" flags="589830" id="org.eclipse.jdt.ui.rename.type" input="/src&lt;{NConnection.java[NConnection" matchStrategy="1" name="Connection" qualified="false" references="true" similarDeclarations="false" stamp="1570840146807" textual="false" version="1.0"/>
+</session>

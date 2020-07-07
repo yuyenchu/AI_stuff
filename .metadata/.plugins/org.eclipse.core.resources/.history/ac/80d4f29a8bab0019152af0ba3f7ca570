@@ -1,0 +1,8 @@
+
+public interface Game {
+	public void doMove(int move);
+	public float response();
+	public int[] getEnv();
+	public Game clone();
+	public boolean isEnd();
+}

@@ -1,0 +1,53 @@
+
+public class Player<G extends Game> {
+	private Genome brain;
+	private int in , out , gen;
+	private int[] decision;
+	private boolean isDead;
+	private float fitness;
+	private G game;
+	public float score;
+	
+	public Player (G game, int in, int out) {
+		brain = new Genome(in, out);
+		this.game = game;
+		isDead = false;
+		fitness = 0f;
+		score = 0f;
+		gen = 0;
+	}
+	
+	public void move() {
+		float max = 0;
+	    int maxIndex = 0;
+	    //get the output of the neural network
+	    decision = brain.feedForward(game.getEnv());
+
+	    for (int i = 0; i < decision.length; i++) {
+	      if (decision[i] > max) {
+	        max = decision[i];
+	        maxIndex = i;
+	      }
+	    }
+	}
+	
+	public Player<G> clone() {
+	    Player<G> clone = new Player<G>(game.clone(), in, out);
+	    clone.brain = (Genome) brain.clone();
+	    clone.fitness = fitness;
+	    clone.brain.generateNetwork(); 
+	    clone.gen = gen;
+	    return clone;
+	}
+
+	public void calculateFitness() {
+	    fitness = score;
+	}
+
+	public Player<G> crossover(Player<G> parent2) {
+	    Player<G> child = new Player<G>();
+	    child.brain = brain.crossover(parent2.brain);
+	    child.brain.generateNetwork();
+	    return child;
+	}
+}

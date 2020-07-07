@@ -1,0 +1,9 @@
+
+public class Player {
+	private Genome brain;
+	private final int in = 2, out = 3;
+	
+	public Player() {
+		brain = new Genome(in, out);
+	}
+}

@@ -1,0 +1,87 @@
+import java.util.ArrayList;
+import java.util.List;
+
+public class Neuron {
+	public final int number;
+	private float inputSum, output;
+	private int layer;
+	private List<NConnection> connections;
+	
+	public Neuron(int number, int layer) {
+		this.number = number;
+		this.layer = layer;
+		inputSum = 0;
+		output = 0;
+		connections = new ArrayList<>();
+	}
+	
+	private float sigmoid(float f) {
+		return (float)(1/(1+Math.pow(Math.E, -4.9*(double)f)));
+	}
+	
+	public boolean isConnectedTo(Neuron node) {
+	    if (node.layer == this.layer) {	//nodes in the same layer cannot be connected
+	      return false;
+	    }
+
+	    //checking connections based on layer
+	    if (node.layer < this.layer) {
+	      for (NConnection c: node.connections) {
+	        if (c.getTo().number == this.number) {
+	          return true;
+	        }
+	      }
+	    } else {
+	      for (NConnection c: this.connections) {
+	        if (c.getTo().number == node.number) {
+	          return true;
+	        }
+	      }
+	    }
+	    return false;
+	 }
+	
+	public void addIn(float in) {
+		inputSum += in;
+	}
+	
+	public void addConn(NConnection c) {
+		connections.add(c);
+	}
+	
+	public void clearIO() {
+		inputSum = 0;
+		output = 0;
+	}
+	
+	public void clearConn() {
+		connections.clear();
+	}
+	
+	public void engage() {
+		output = sigmoid(inputSum);
+		for (NConnection c: connections) {
+			if (c.isEnable()) {
+				c.getTo().addIn(output * c.weight());
+			}
+		}
+	}
+	
+	public int getLayer() {
+		return layer;
+	}
+	
+	public void setLayer(int i) {
+		layer = i;
+	}
+	
+	public float getOutput() {
+		return output;
+	}	
+	
+	public float getInput() {
+		return inputSum;
+	}
+	
+	
+}

@@ -1,0 +1,18 @@
+import java.util.ArrayList;
+
+public class ConnHistory {
+	public final int from, to, id;
+	public ArrayList<Integer> innoNums;
+	
+	@SuppressWarnings("unchecked")
+	public ConnHistory(int from, int to, int id, ArrayList<Integer> innoNums) {
+		this.from = from;
+		this.to = to;
+		this.id = id;
+		this.innoNums = (ArrayList<Integer>) innoNums.clone();
+	}
+	
+	public boolean match(Genome g, Neuron f, Neuron t) {
+		return false;
+	}
+}

@@ -1,0 +1,14 @@
+
+public class Player {
+	private Genome brain;
+	private final int in = 2, out = 3;
+	private boolean isDead;
+	private float fitness, score;
+	
+	public Player() {
+		brain = new Genome(in, out);
+		isDead = false;
+		fitness = 0f;
+		score = 0f;
+	}
+}

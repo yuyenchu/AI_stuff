@@ -1,0 +1,75 @@
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+public class Genome {
+	private List<NConnection> genes;
+	private List<Neuron> neurons;
+	private List<Map<Integer,Neuron>> network;
+	//network are in order of layers, network[i] = i layer
+	
+	public final int inputs, outputs;
+	private int layers, nextneuronNo, nextConnNo, biasNode;
+	
+	public Genome(int in, int out) {
+	    //set input number and output number
+		inputs = in;
+		outputs = out;
+		nextneuronNo = 0;
+		nextConnNo = 0;
+		layers = 2;
+		genes = new ArrayList<>();
+		
+	    //create input nodes
+	    for (int i = 0; i<inputs; i++) {
+	      neurons.add(new Neuron(i, 0));
+	      nextneuronNo++;
+	    }
+
+	    //create output nodes
+	    for (int i = 0; i < outputs; i++) {
+	      neurons.add(new Neuron(i+inputs, 1));
+	      nextneuronNo++;
+	    }
+
+	    //create bias node
+	    neurons.add(new Neuron(nextneuronNo, 0));
+	    biasNode = nextneuronNo; 
+	    nextneuronNo++;
+	}
+	
+	public Neuron getNode(int nodeNumber) {
+	    for (Neuron n: neurons) {
+	    	if (n.number == nodeNumber) {
+	    		return n;
+	    	}
+	    }
+	    return null;
+	}
+	
+	public void connect() {
+		for (Neuron n: neurons) {
+			n.clearConn();
+		}
+		for (NConnection c: genes) {
+			c.connect();
+		}
+	}
+	
+	public void generateNetwork() {
+		connect();
+		network = new ArrayList<Map<Integer,Neuron>>(layers);
+		for (int i = 0; i < layers; i++) {
+			network.add(new HashMap<Integer,Neuron>());
+		}
+		
+		for (Neuron n: neurons) {
+			network.get(n.getLayer()).put(n.number, n);
+		}
+	}
+	
+	public void addNeuron() {
+		
+	}
+}
